@@ -15,19 +15,23 @@ main :: IO ()
 main = do
   config <- execParser parseConfig
   input <- B.getContents
-  statements <- Yaml.decodeThrow input
-  let lockTimeout = calculateLockTimeout statements
-      statementTimeout = calculateStatementTimeout statements
-      transaction = determineTransaction statements
-      migration = Migration statements lockTimeout statementTimeout transaction
-  case validate migration of
-    []   ->
-      case mode config of
-        Forward -> putStrLn (toSql migration)
-        Reverse -> case Reverse.reverse migration of
-                     Nothing -> putStrLn "ERROR: cannot reverse migration"
-                     Just m  -> putStrLn (toSql m)
-    errs -> putStrLn ("ERROR: " ++ unlines errs) >> exitWith (ExitFailure 1)
+  case Yaml.decodeEither' input of
+    Left (Yaml.AesonException e) -> putStrLn e
+    Left e -> print e
+    Right statements ->
+      let lockTimeout = calculateLockTimeout statements
+          statementTimeout = calculateStatementTimeout statements
+          transaction = determineTransaction statements
+          migration = Migration statements lockTimeout statementTimeout transaction
+      in
+        case validate migration of
+          []   ->
+            case mode config of
+              Forward -> putStrLn (toSql migration)
+              Reverse -> case Reverse.reverse migration of
+                           Nothing -> putStrLn "ERROR: cannot reverse migration"
+                           Just m  -> putStrLn (toSql m)
+          errs -> putStrLn ("ERROR: " ++ unlines errs) >> exitWith (ExitFailure 1)
 
 newtype Config = Config { mode :: Mode } deriving (Eq, Show)
 data Mode = Forward | Reverse deriving (Eq, Show)
