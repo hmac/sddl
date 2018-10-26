@@ -7,6 +7,13 @@ Indexes should always be btrees
 Index creation should be concurrent and isolated, with large lock/statement timeout
 Index creation should not occur in a transaction
 Every other DDL change should occur in a transaction
-New columns must always specify NULL
-New columns must never specify a default (really?)
+Columns added to existing tables must always specify NULL
+New columns must never specify a default
+  https://www.postgresql.org/docs/9.4/static/ddl-alter.html
+  Adding a column with a default requires updating each row of the table
+  (to store the new column value). However, if no default is specified,
+  PostgreSQL is able to avoid the physical update. So if you intend to fill
+  the column with mostly nondefault values,it's best to add the column with no
+  default, insert the correct values using UPDATE, and then add any desired
+  default as described below.
 

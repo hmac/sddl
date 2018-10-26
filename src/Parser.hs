@@ -1,8 +1,8 @@
 module Parser where
 
-import           Control.Monad        (join)
+import           Control.Monad        (join, void)
 import           Data.Void            (Void)
-import           Lib
+import           Lib                  (ColDef (ColDef), SqlType (..), Statement (AddColumn, AddForeignKey, CreateIndex, CreateTable, DropIndex, DropTable, MakeColumnNotNull, MakeColumnNull))
 
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
@@ -11,8 +11,9 @@ type Parser = Parsec Void String
 
 
 parseMigration :: String -> Either (ParseError Char Void) [Statement]
-parseMigration input = parse migration "input" input
+parseMigration = parse migration "input"
 
+test :: IO ()
 test =
   let tests =
           [ "add_column apps created_at timestamp"
@@ -40,13 +41,13 @@ statement = do
 
 comment :: Parser [Statement]
 comment = do
-  string "--"
-  takeWhileP (Just "ascii char") (/= '\n')
+  string_ "--"
+  _ <- takeWhileP (Just "ascii char") (/= '\n')
   pure []
 
 addColumn :: Parser Statement
 addColumn = do
-  string "add_column"
+  string_ "add_column"
   space1
   table <- word
   space1
@@ -57,7 +58,7 @@ addColumn = do
 
 makeColumnNotNull :: Parser Statement
 makeColumnNotNull = do
-  string "set_column_not_null"
+  string_ "set_column_not_null"
   space1
   table <- word
   space1
@@ -66,7 +67,7 @@ makeColumnNotNull = do
 
 makeColumnNull :: Parser Statement
 makeColumnNull = do
-  string "set_column_null"
+  string_ "set_column_null"
   space1
   table <- word
   space1
@@ -75,7 +76,7 @@ makeColumnNull = do
 
 createIndex :: Parser Statement
 createIndex = do
-  string "add_index"
+  string_ "add_index"
   space1
   table <- word
   space1
@@ -86,21 +87,21 @@ createIndex = do
 
 dropIndex :: Parser Statement
 dropIndex = do
-  string "drop_index"
+  string_ "drop_index"
   space1
   name <- word
   pure $ DropIndex name
 
 dropTable :: Parser Statement
 dropTable = do
-  string "drop_table"
+  string_ "drop_table"
   space1
   name <- word
   pure $ DropTable name
 
 addForeignKey :: Parser Statement
 addForeignKey = do
-  string "add_foreign_key"
+  string_ "add_foreign_key"
   srcTable <- space1 *> word
   srcCol <- space1 *> word
   tarTable <- space1 *> word
@@ -109,15 +110,15 @@ addForeignKey = do
 
 createTable :: Parser Statement
 createTable = do
-  string "create_table"
+  string_ "create_table"
   name <- space1 *> word
   prefix <- space1 *> (some upperChar)
   space1
-  char '('
+  _ <- char '('
   space
   colDefs <- sepBy1 colDef (char ',' >> space)
   space
-  char ')'
+  _ <- char ')'
   pure $ CreateTable name prefix colDefs
     where colDef :: Parser ColDef
           colDef = do
@@ -126,16 +127,19 @@ createTable = do
             space1
             coltype <- parseSqlType
             space
-            null <- (string "null" >> pure True) <|> (string "not null" >> pure False)
+            isNull <- (string_ "null" >> pure True) <|> (string_ "not null" >> pure False)
             space
-            pure $ ColDef col coltype null
+            pure $ ColDef col coltype isNull
 
 parseSqlType :: Parser SqlType
-parseSqlType = (string "text"      >> pure SText)
-      <|> (string "timestamp" >> pure STimestamp)
-      <|> (string "integer"   >> pure SInteger)
-      <|> (string "boolean"   >> pure SBoolean)
-      <|> (string "json"      >> pure SJson)
+parseSqlType = (string_ "text"      >> pure SText)
+      <|> (string_ "timestamp" >> pure STimestamp)
+      <|> (string_ "integer"   >> pure SInteger)
+      <|> (string_ "boolean"   >> pure SBoolean)
+      <|> (string_ "json"      >> pure SJson)
 
 word :: Parser String
 word = some (letterChar <|> char '_')
+
+string_ :: String -> Parser ()
+string_ = void . string
