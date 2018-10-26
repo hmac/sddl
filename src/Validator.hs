@@ -21,7 +21,7 @@ calculateStatementTimeout statements = if includesIndex statements then 900000 e
 
 -- Every migration should occur in a transaction, except for index creates and drops
 determineTransaction :: [Statement] -> Bool
-determineTransaction = includesIndex
+determineTransaction = not . includesIndex
 
 validate :: Migration -> [String]
 validate migration =
