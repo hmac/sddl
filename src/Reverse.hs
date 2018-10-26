@@ -3,7 +3,7 @@
 
 module Reverse (reverse) where
 
-import           Lib
+import           Core
 import           Prelude   hiding (reverse)
 import           Validator
 

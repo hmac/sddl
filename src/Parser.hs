@@ -1,8 +1,8 @@
 module Parser where
 
 import           Control.Monad        (join, void)
+import           Core                 (ColDef (ColDef), SqlType (..), Statement (AddColumn, AddForeignKey, CreateIndex, CreateTable, DropIndex, DropTable, MakeColumnNotNull, MakeColumnNull))
 import           Data.Void            (Void)
-import           Lib                  (ColDef (ColDef), SqlType (..), Statement (AddColumn, AddForeignKey, CreateIndex, CreateTable, DropIndex, DropTable, MakeColumnNotNull, MakeColumnNull))
 
 import           Text.Megaparsec
 import           Text.Megaparsec.Char

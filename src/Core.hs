@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings     #-}
-module Lib where
+module Core where
 
 import           Data.Aeson      (FromJSON, Options (..), camelTo2,
                                   defaultOptions, genericParseJSON, parseJSON,

@@ -2,9 +2,9 @@
 
 module Main where
 
+import           Core            (Migration (..))
 import qualified Data.ByteString as B (getContents)
 import qualified Data.Yaml       as Yaml
-import           Lib             (Migration (..))
 import qualified Reverse
 import           System.Exit
 import           ToSql           (toSql)

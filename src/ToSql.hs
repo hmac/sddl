@@ -2,8 +2,8 @@
 
 module ToSql where
 
+import           Core
 import           Data.List (intercalate, intersperse)
-import           Lib
 
 -- Utilities
 paren :: String -> String

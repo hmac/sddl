@@ -7,10 +7,9 @@ module Validator
   , determineTransaction
   ) where
 
-import           Lib
-import           Numeric.Natural
-
+import           Core
 import           Data.Maybe      (mapMaybe)
+import           Numeric.Natural
 
 type Validation = Migration -> Maybe String
 
