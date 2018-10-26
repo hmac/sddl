@@ -1,0 +1,12 @@
+FK creation should be in 2 steps
+- Add invalid FK with short timeouts
+- Validate FK concurrently with long timeouts
+FKs should always be named
+Indexes should always be named
+Indexes should always be btrees
+Index creation should be concurrent and isolated, with large lock/statement timeout
+Index creation should not occur in a transaction
+Every other DDL change should occur in a transaction
+New columns must always specify NULL
+New columns must never specify a default (really?)
+
