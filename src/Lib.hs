@@ -25,19 +25,21 @@ instance FromJSON SqlType where
 
 data Statement =
     AddColumn { table :: String, column :: String, type_ :: SqlType }
+  | DropColumn { table :: String, column :: String }
   | CreateTable { name :: String, prefix :: String, definition :: [ColDef] }
+  | DropTable { name :: String }
   | MakeColumnNotNull { table :: String, column :: String }
   | MakeColumnNull { table :: String, column :: String }
   | ChangeColumnDefault { table :: String, column :: String, from :: String, to :: String }
   | CreateIndex { table :: String, columns :: [String], name :: String, partial :: Maybe String }
   | DropIndex { name :: String }
-  | DropTable { name :: String }
   | AddForeignKey { sourceTable  :: String
                   , sourceColumn :: String
                   , targetTable  :: String
                   , targetColumn :: String
                   , name         :: String
                   }
+  | DropConstraint { name :: String }
   deriving (Eq, Show, Generic)
 
 instance FromJSON Statement where

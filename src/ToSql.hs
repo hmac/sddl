@@ -38,6 +38,8 @@ instance ToSql ColDef where
 instance ToSql Statement where
   toSql (AddColumn tbl col colType) =
     unwords ["ALTER TABLE", tbl, "ADD COLUMN", col, toSql colType]
+  toSql (DropColumn tbl col) =
+    unwords ["ALTER TABLE", tbl, "DROP COLUMN", col]
   toSql (CreateTable name p cols) =
     let idCol =
           "id character varying(32) DEFAULT " ++
@@ -76,6 +78,7 @@ instance ToSql Statement where
       , "REFERENCES"
       , tarTable ++ paren tarCol
       ]
+  toSql (DropConstraint name) = unwords ["DROP CONSTRAINT", name]
 
 instance ToSql Migration where
   toSql (Migration statements lockTimeout statementTimeout transaction) =
