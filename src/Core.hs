@@ -26,11 +26,12 @@ instance FromJSON SqlType where
 data Statement =
     AddColumn { table :: String, column :: String, type_ :: SqlType }
   | DropColumn { table :: String, column :: String }
-  | CreateTable { name :: String, prefix :: String, definition :: [ColDef] }
-  | DropTable { name :: String }
+  | CreateTable { table :: String, prefix :: String, definition :: [ColDef] }
+  | DropTable { table :: String }
   | MakeColumnNotNull { table :: String, column :: String }
   | MakeColumnNull { table :: String, column :: String }
   | ChangeColumnDefault { table :: String, column :: String, from :: String, to :: String }
+  | DropColumnDefault { table :: String, column :: String, from :: String }
   | CreateIndex { table :: String, columns :: [String], name :: String, partial :: Maybe String }
   | DropIndex { name :: String }
   | AddForeignKey { sourceTable  :: String

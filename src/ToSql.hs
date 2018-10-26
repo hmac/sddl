@@ -56,6 +56,8 @@ instance ToSql Statement where
     unwords ["ALTER TABLE ONLY", table, "ALTER COLUMN", col, "SET NULL"]
   toSql (ChangeColumnDefault table col _ to) =
     unwords ["ALTER TABLE ONLY", table, "ALTER COLUMN", col, "SET DEFAULT", quote to]
+  toSql (DropColumnDefault table col _) =
+    unwords ["ALTER TABLE ONLY", table, "ALTER COLUMN", col, "DROP DEFAULT"]
   toSql (CreateIndex table cols name _mwhere) =
     unwords
       [ "CREATE INDEX CONCURRENTLY"
