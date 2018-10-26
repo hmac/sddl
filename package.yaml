@@ -24,6 +24,7 @@ dependencies:
 - yaml
 - bytestring
 - aeson
+- optparse-applicative
 
 ghc-options:
   - -Wall
