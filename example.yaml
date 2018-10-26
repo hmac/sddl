@@ -24,12 +24,3 @@
   - name: organisation_id
     type: text
     null: false
-  - name: created_at
-    type: timestamp
-    null: false
-  - name: updated_at
-    type: timestamp
-    null: false
-  - name: must_use_payment_pages
-    type: boolean
-    null: false

@@ -12,8 +12,8 @@ paren s = "(" ++ s ++ ")"
 list :: [String] -> String
 list xs = unwords (intersperse "," xs)
 
-multilist :: [String] -> String
-multilist = intercalate ",\n"
+multiline :: [String] -> String
+multiline = intercalate "\n"
 
 quote :: String -> String
 quote s = "'" ++ s ++ "'"
@@ -44,12 +44,12 @@ instance ToSql Statement where
     let idCol =
           "id character varying(32) DEFAULT " ++
           "public.gen_gc_id('" ++ p ++ "'::text, '" ++ name ++ "_id_seq'::text) NOT NULL"
-        create_seq = "CREATE SEQUENCE public." ++ name ++ "_id_seq " ++
+        createSequence = "CREATE SEQUENCE public." ++ name ++ "_id_seq " ++
                      "START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;"
-    in unlines
-        [create_seq
-       , unwords ["CREATE TABLE", name, "(\n", multilist (idCol : map toSql cols), "\n)"]
-        ]
+        colDefs = map (++ ",") $ idCol : map toSql cols
+        createTable = multiline $ wrap ("CREATE TABLE " ++ name ++ " (") ")" colDefs
+    in
+      multiline [createSequence, createTable]
   toSql (MakeColumnNotNull table col) =
     unwords ["ALTER TABLE ONLY", table, "ALTER COLUMN", col, "SET NOT NULL"]
   toSql (MakeColumnNull table col) =
