@@ -1,0 +1,35 @@
+- tag: add_column
+  table: app_fees
+  column: app_id
+  type: text
+- tag: create_table
+  name: apps
+  prefix: AP
+  definition:
+  - name: name
+    type: text
+    null: false
+  - name: description
+    type: text
+    null: false
+  - name: website_url
+    type: text
+    null: true
+  - name: client_id
+    type: text
+    null: false
+  - name: client_secret
+    type: text
+    null: false
+  - name: organisation_id
+    type: text
+    null: false
+  - name: created_at
+    type: timestamp
+    null: false
+  - name: updated_at
+    type: timestamp
+    null: false
+  - name: must_use_payment_pages
+    type: boolean
+    null: false
