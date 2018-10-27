@@ -1,20 +1,17 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 
-module Reverse (reverse) where
+module Reverse (reverseMigration) where
 
 import           Core
 import           Prelude  hiding (reverse)
 import           Validate
 
-reverse :: Migration -> Maybe Migration
-reverse Migration { statements } =
+reverseMigration :: Migration -> Either String Migration
+reverseMigration Migration { statements } =
   case traverse reverseStatement statements of
-    Nothing -> Nothing
-    Just ss -> Just Migration { statements = ss
-                              , lockTimeout = calculateLockTimeout ss
-                              , statementTimeout = calculateStatementTimeout ss
-                              , transaction = determineTransaction ss }
+    Nothing -> Left "cannot reverse migration"
+    Just ss -> buildMigration ss
 
 
 reverseStatement :: Statement -> Maybe Statement

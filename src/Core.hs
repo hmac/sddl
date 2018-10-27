@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 module Core where
 
@@ -7,21 +8,20 @@ import           Data.Aeson      (FromJSON, Options (..), camelTo2,
                                   defaultOptions, genericParseJSON, parseJSON,
                                   withText)
 import           GHC.Generics
-
 import           Numeric.Natural
 
 data SqlType = SText | STimestamp | SInteger | SBoolean | SJson
   deriving (Eq, Show, Generic)
 
 instance FromJSON SqlType where
-  parseJSON = withText "a SQL type" $ \t ->
-    case t of
+  parseJSON = withText "a SQL type" $
+    \case
       "text"      -> pure SText
       "timestamp" -> pure STimestamp
       "integer"   -> pure SInteger
       "boolean"   -> pure SBoolean
       "json"      -> pure SJson
-      _           -> fail $ "must be one of {text timestamp integer boolean json}"
+      _           -> fail "must be one of {text timestamp integer boolean json}"
 
 data Statement =
     AddColumn { table :: String, column :: String, type_ :: SqlType }

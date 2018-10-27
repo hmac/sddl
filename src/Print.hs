@@ -1,7 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 
-module ToSql where
+module Print (toSql) where
 
 import           Core
 import           Data.List (intercalate, intersperse)

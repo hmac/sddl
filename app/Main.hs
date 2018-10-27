@@ -2,37 +2,35 @@
 
 module Main where
 
-import           Core                         (Migration (..))
-import qualified Data.ByteString              as B (getContents)
+import qualified Control.Arrow                as Arrow (left)
+import           Control.Monad                ((>=>))
+import qualified Data.ByteString              as B (ByteString, getContents)
 import qualified Data.Yaml                    as Yaml
 import           Options.Applicative
-import qualified Reverse
-import           System.Exit
+import           System.Exit                  (ExitCode (ExitFailure), exitWith)
 import qualified Text.PrettyPrint.ANSI.Leijen as PrettyPrint (Doc, string)
-import           ToSql                        (toSql)
+
+import           Core                         (Migration)
+import           Print                        (toSql)
+import           Reverse
 import           Validate
 
 main :: IO ()
 main = do
   config <- execParser parseConfig
   input <- B.getContents
-  case Yaml.decodeEither' input of
-    Left (Yaml.AesonException e) -> putStrLn e
-    Left e -> print e
-    Right statements ->
-      let lockTimeout = calculateLockTimeout statements
-          statementTimeout = calculateStatementTimeout statements
-          transaction = determineTransaction statements
-          migration = Migration statements lockTimeout statementTimeout transaction
-      in
-        case validate migration of
-          []   ->
-            case mode config of
-              Forward -> putStrLn (toSql migration)
-              Reverse -> case Reverse.reverse migration of
-                           Nothing -> putStrLn "ERROR: cannot reverse migration"
-                           Just m  -> putStrLn (toSql m)
-          errs -> putStrLn ("ERROR: " ++ unlines errs) >> exitWith (ExitFailure 1)
+  case run (mode config) input of
+    Left err        -> putStrLn err >> exitWith (ExitFailure 1)
+    Right migration -> putStrLn (toSql migration)
+
+run :: Mode -> B.ByteString -> Either String Migration
+run mode input =
+  let generate = case mode of
+                   Forward -> buildMigration
+                   Reverse -> buildMigration >=> reverseMigration
+  in do
+    statements <- Arrow.left show (Yaml.decodeEither' input)
+    generate statements
 
 newtype Config = Config { mode :: Mode } deriving (Eq, Show)
 data Mode = Forward | Reverse deriving (Eq, Show)
@@ -46,7 +44,7 @@ description = PrettyPrint.string $ unlines
   ["sddl: A tool to generate safe DDL"
   , ""
   , "Pipe YAML to this tool and it will produce SQL migrations."
-  , "The supported actions are (in YAML):"
+  , "The supported actions are (in YAML syntax):"
   , ""
   , "- { tag: add_column, table: table name, column: column name, type: SQL type }"
   , "- { tag: drop_column, table: table name, column: column name }"
