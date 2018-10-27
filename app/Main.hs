@@ -17,9 +17,9 @@ import           Validate
 
 main :: IO ()
 main = do
-  config <- execParser parseConfig
+  options <- execParser parseOptions
   input <- B.getContents
-  case run (mode config) input of
+  case run (mode options) input of
     Left err        -> putStrLn err >> exitWith (ExitFailure 1)
     Right migration -> putStrLn (toSql migration)
 
@@ -32,12 +32,12 @@ run mode input =
     statements <- Arrow.left show (Yaml.decodeEither' input)
     generate statements
 
-newtype Config = Config { mode :: Mode } deriving (Eq, Show)
+newtype Options = Options { mode :: Mode } deriving (Eq, Show)
 data Mode = Forward | Reverse deriving (Eq, Show)
 
-parseConfig :: ParserInfo Config
-parseConfig = info (parser <**> helper) $ fullDesc <> progDescDoc (Just description) <> header "sddl"
-  where parser = Config <$> flag Forward Reverse (long "reverse" <> short 'r' <> help "Generate reverse migration")
+parseOptions :: ParserInfo Options
+parseOptions = info (parser <**> helper) $ fullDesc <> progDescDoc (Just description) <> header "sddl"
+  where parser = Options <$> flag Forward Reverse (long "reverse" <> short 'r' <> help "Generate reverse migration")
 
 description :: PrettyPrint.Doc
 description = PrettyPrint.string $ unlines
@@ -59,6 +59,7 @@ description = PrettyPrint.string $ unlines
   , "- { tag: create_index, table: table name, columns: [array of column names], name: index name }"
   , "- { tag: drop_index, name: index name }"
   , "- { tag: drop_table, table: table name }"
+  , "- { tag: drop_constraint, name: constraint name (e.g. a foreign key name) }"
   , "- tag: create_table"
   , "  table: table name"
   , "  prefix: the ID prefix (e.g. 'PM')"

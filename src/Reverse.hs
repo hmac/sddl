@@ -10,7 +10,7 @@ import           Validate
 reverseMigration :: Migration -> Either String Migration
 reverseMigration Migration { statements } =
   case traverse reverseStatement statements of
-    Nothing -> Left "cannot reverse migration"
+    Nothing -> Left "Cannot reverse migration"
     Just ss -> buildMigration ss
 
 
