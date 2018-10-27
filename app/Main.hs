@@ -10,7 +10,7 @@ import qualified Reverse
 import           System.Exit
 import qualified Text.PrettyPrint.ANSI.Leijen as PrettyPrint (Doc, string)
 import           ToSql                        (toSql)
-import           Validator
+import           Validate
 
 main :: IO ()
 main = do

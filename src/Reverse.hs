@@ -4,8 +4,8 @@
 module Reverse (reverse) where
 
 import           Core
-import           Prelude   hiding (reverse)
-import           Validator
+import           Prelude  hiding (reverse)
+import           Validate
 
 reverse :: Migration -> Maybe Migration
 reverse Migration { statements } =

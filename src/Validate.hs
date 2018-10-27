@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Validator
+module Validate
   ( validate
   , calculateLockTimeout
   , calculateStatementTimeout
