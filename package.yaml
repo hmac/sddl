@@ -25,6 +25,7 @@ dependencies:
 - bytestring
 - aeson
 - optparse-applicative
+- ansi-wl-pprint
 
 ghc-options:
   - -Wall

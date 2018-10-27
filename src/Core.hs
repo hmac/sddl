@@ -21,7 +21,7 @@ instance FromJSON SqlType where
       "integer"   -> pure SInteger
       "boolean"   -> pure SBoolean
       "json"      -> pure SJson
-      s           -> fail $ "Invalid SQL type " ++ show s
+      _           -> fail $ "must be one of {text timestamp integer boolean json}"
 
 data Statement =
     AddColumn { table :: String, column :: String, type_ :: SqlType }
