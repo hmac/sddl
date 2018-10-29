@@ -19,6 +19,9 @@ import           Print                        (toSql)
 import           Reverse
 import           Validate
 
+version :: String
+version = "0.1.0.0"
+
 main :: IO ()
 main = do
   options <- execParser parseOptions
@@ -72,7 +75,7 @@ instance ToJSON YamlOutput where
 
 parseOptions :: ParserInfo Options
 parseOptions =
-  info (parser <**> helper) $
+  info (parser <**> helper <**> versionOption) $
   fullDesc <> progDescDoc (Just description) <> header "sddl"
   where
     parser =
@@ -83,7 +86,9 @@ parseOptions =
         (long "reverse" <> short 'r' <> help "Generate reverse migration") <*>
       option
         (maybeReader parseFormat)
-        (long "format" <> short 'f' <> metavar "FORMAT" <> help "output format")
+        (long "format" <> short 'f' <> metavar "FORMAT" <> help "Output format. One of {sql, yaml}")
+    versionOption :: Parser (a -> a)
+    versionOption = infoOption version (long "version" <> help "Show version")
 
 parseFormat :: String -> Maybe Format
 parseFormat =
@@ -121,5 +126,5 @@ description = PrettyPrint.string $ unlines
   , "  - type: SQL type"
   , "  - null: (boolean) whether the column is nullable"
   , ""
-  , "SQL type is one of {text timestamp integer boolean json}"
+  , "SQL type is one of {text, timestamp, integer, boolean, json}"
   ]
