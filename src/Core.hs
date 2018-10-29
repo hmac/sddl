@@ -49,7 +49,7 @@ instance FromJSON Statement where
     , fieldLabelModifier = camelTo2 '_' . filter (/= '_') }
 
 data ColDef =
-  ColDef { name :: String, type_ :: SqlType, null :: Bool }
+  ColDef { column :: String, type_ :: SqlType, null :: Bool }
   deriving (Eq, Show, Generic)
 
 instance FromJSON ColDef where
@@ -67,4 +67,3 @@ newtype LockTimeout = LockTimeout Int deriving (Eq, Show, Generic)
 instance FromJSON LockTimeout
 
 newtype StatementTimeout = StatementTimeout Int deriving (Eq, Show, Generic)
-instance FromJSON StatementTimeout

@@ -34,9 +34,9 @@ instance ToSql SqlType where
   toSql SJson      = "jsonb"
 
 instance ToSql ColDef where
-  toSql ColDef { name, type_, null } =
+  toSql ColDef { column, type_, null } =
     let isNull = if null then "NULL" else "NOT NULL"
-    in unwords [name, toSql type_, isNull]
+    in unwords [column, toSql type_, isNull]
 
 instance ToSql Statement where
   toSql AddColumn { table, column, type_ } =

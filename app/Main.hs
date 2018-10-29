@@ -1,16 +1,20 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import qualified Control.Arrow                as Arrow (left)
 import           Control.Monad                ((>=>))
-import qualified Data.ByteString              as B (ByteString, getContents)
+import qualified Data.ByteString              as B (ByteString, getContents,
+                                                    putStr)
+import           Data.Yaml                    (ToJSON, (.=))
 import qualified Data.Yaml                    as Yaml
 import           Options.Applicative
 import           System.Exit                  (ExitCode (ExitFailure), exitWith)
 import qualified Text.PrettyPrint.ANSI.Leijen as PrettyPrint (Doc, string)
 
-import           Core                         (Migration)
+import           Core                         (Migration (..))
 import           Print                        (toSql)
 import           Reverse
 import           Validate
@@ -19,9 +23,20 @@ main :: IO ()
 main = do
   options <- execParser parseOptions
   input <- B.getContents
-  case run (mode options) input of
-    Left err        -> putStrLn err >> exitWith (ExitFailure 1)
-    Right migration -> putStrLn (toSql migration)
+  case format options of
+    FormatSql  ->
+      case run (mode options) input of
+        Left err        -> failWith err
+        Right migration -> putStr (toSql migration)
+    FormatYaml ->
+      case run Forward input of
+        Left err -> B.putStr $ Yaml.encode (E err)
+        Right up ->
+          let down = either (const Nothing) Just (run Reverse input)
+          in B.putStr (Yaml.encode (Y up down))
+
+failWith :: String -> IO ()
+failWith err = putStrLn err >> exitWith (ExitFailure 1)
 
 run :: Mode -> B.ByteString -> Either String Migration
 run mode input =
@@ -32,12 +47,50 @@ run mode input =
     statements <- Arrow.left show (Yaml.decodeEither' input)
     generate statements
 
-newtype Options = Options { mode :: Mode } deriving (Eq, Show)
-data Mode = Forward | Reverse deriving (Eq, Show)
+data Options = Options { mode :: Mode, format :: Format }
+data Mode = Forward | Reverse
+data Format = FormatSql | FormatYaml
+
+-- This describes the our YAML output format
+-- The first parameter is the up migration, the second is the down
+data YamlOutput = Y Migration (Maybe Migration)
+                | E String
+instance ToJSON YamlOutput where
+  toJSON (Y up down) = Yaml.object $
+    case down of
+      Nothing -> migrationToObject up
+      Just Migration { statements } ->
+        migrationToObject up <> [ "down" .= map toSql statements ]
+    where
+      migrationToObject Migration {statementTimeout, lockTimeout, transaction, statements} =
+        [ "statement_timeout" .= statementTimeout
+        , "lock_timeout" .= lockTimeout
+        , "in_transaction" .= transaction
+        , "up" .= map toSql statements
+        ]
+  toJSON (E err) = Yaml.object [ "error" .= err ]
 
 parseOptions :: ParserInfo Options
-parseOptions = info (parser <**> helper) $ fullDesc <> progDescDoc (Just description) <> header "sddl"
-  where parser = Options <$> flag Forward Reverse (long "reverse" <> short 'r' <> help "Generate reverse migration")
+parseOptions =
+  info (parser <**> helper) $
+  fullDesc <> progDescDoc (Just description) <> header "sddl"
+  where
+    parser =
+      Options <$>
+      flag
+        Forward
+        Reverse
+        (long "reverse" <> short 'r' <> help "Generate reverse migration") <*>
+      option
+        (maybeReader parseFormat)
+        (long "format" <> short 'f' <> metavar "FORMAT" <> help "output format")
+
+parseFormat :: String -> Maybe Format
+parseFormat =
+  \case
+    "sql" -> Just FormatSql
+    "yaml" -> Just FormatYaml
+    _ -> Nothing
 
 description :: PrettyPrint.Doc
 description = PrettyPrint.string $ unlines
@@ -64,7 +117,7 @@ description = PrettyPrint.string $ unlines
   , "  table: table name"
   , "  prefix: the ID prefix (e.g. 'PM')"
   , "  definition: (an array of colun definitions, like this)"
-  , "  - name: column name"
+  , "  - column: column name"
   , "  - type: SQL type"
   , "  - null: (boolean) whether the column is nullable"
   , ""
