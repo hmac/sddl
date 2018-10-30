@@ -40,7 +40,7 @@ executables:
     - text
 
 tests:
-  sddl-test:
+  test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -49,3 +49,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - sddl
+    - hspec
