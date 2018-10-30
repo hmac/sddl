@@ -28,8 +28,8 @@ data Statement =
   | DropColumn { table :: String, column :: String }
   | CreateTable { table :: String, prefix :: String, definition :: [ColDef] }
   | DropTable { table :: String }
-  | MakeColumnNotNull { table :: String, column :: String }
   | MakeColumnNull { table :: String, column :: String }
+  | MakeColumnNotNull { table :: String, column :: String }
   | ChangeColumnDefault { table :: String, column :: String, from :: String, to :: String }
   | DropColumnDefault { table :: String, column :: String, from :: String }
   | CreateIndex { table :: String, columns :: [String], name :: String, partial :: Maybe String }
@@ -40,7 +40,8 @@ data Statement =
                   , targetColumn :: String
                   , name         :: String
                   }
-  | DropConstraint { name :: String }
+  | ValidateForeignKey { table :: String, name :: String }
+  | DropConstraint { table :: String, name :: String }
   deriving (Eq, Show, Generic)
 
 instance FromJSON Statement where

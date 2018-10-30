@@ -24,35 +24,53 @@ buildMigration s =
 
 calculateLockTimeout :: [Statement] -> Natural
 calculateLockTimeout statements =
-  if includesIndex statements
+  if (includesIndex statements) || (includesFkValidation statements)
   then 900000
   else 750
 
 calculateStatementTimeout :: [Statement] -> Natural
 calculateStatementTimeout statements =
-  if includesIndex statements
+  if includesIndex statements || (includesFkValidation statements)
   then 900000
   else 1500
 
 -- Every migration should occur in a transaction, except for index creates and drops
 determineTransaction :: [Statement] -> Bool
-determineTransaction = not . includesIndex
+determineTransaction statements =
+  not (includesIndex statements) &&
+  not (includesFkValidation statements)
 
 validate :: Migration -> [String]
 validate migration = mapMaybe (\v -> v migration) validations
 
 validations :: [Validation]
-validations = [indexCreationIsolation]
+validations = [indexCreationIsolation, foreignKeyValidationIsolation]
 
 indexCreationIsolation :: Migration -> Maybe String
-indexCreationIsolation Migration { statements } =
+indexCreationIsolation Migration {statements} =
   if includesIndex statements && length statements > 1
-  then Just "Perform index creation in its own migration"
-  else Nothing
+    then Just "Perform index creation in its own migration"
+    else Nothing
+
+-- It's probably safe to perform index creation and FK validation in the same migration,
+-- but it's easier to just forbid that edge case.
+foreignKeyValidationIsolation :: Migration -> Maybe String
+foreignKeyValidationIsolation Migration {statements} =
+  if includesFkValidation statements && length statements > 1
+    then Just "Perform foreign key validation in its own migration"
+    else Nothing
 
 -- Does the list of statements include an index create or an index drop?
 includesIndex :: [Statement] -> Bool
 includesIndex = any isIndexCreationOrDrop
-  where isIndexCreationOrDrop CreateIndex {} = True
-        isIndexCreationOrDrop DropIndex {}   = True
-        isIndexCreationOrDrop _              = False
+  where
+    isIndexCreationOrDrop CreateIndex {} = True
+    isIndexCreationOrDrop DropIndex {}   = True
+    isIndexCreationOrDrop _              = False
+
+-- Does the list of statements include a foreign key validation?
+includesFkValidation :: [Statement] -> Bool
+includesFkValidation = any isFkValidation
+  where
+    isFkValidation ValidateForeignKey {} = True
+    isFkValidation _                     = False

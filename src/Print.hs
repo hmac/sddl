@@ -82,8 +82,12 @@ instance ToSql Statement where
       , paren sourceColumn
       , "REFERENCES"
       , targetTable ++ paren targetColumn
+      , "NOT VALID"
       ]
-  toSql DropConstraint { name } = unwords ["DROP CONSTRAINT", name]
+  toSql ValidateForeignKey { table, name } =
+    unwords [ "ALTER TABLE ONLY", table, "VALIDATE CONSTRAINT", name ]
+  toSql DropConstraint { table, name } =
+    unwords ["ALTER TABLE ONLY", table, "DROP CONSTRAINT", name]
 
 instance ToSql Migration where
   toSql Migration { statements, lockTimeout, statementTimeout, transaction } =
