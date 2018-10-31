@@ -25,6 +25,6 @@ reverseStatement ChangeColumnDefault { table, column, from, to } = Just ChangeCo
 reverseStatement DropColumnDefault { table, column, from } = Just ChangeColumnDefault { table, column, from = "", to = from }
 reverseStatement CreateIndex { name } = Just DropIndex { name }
 reverseStatement DropIndex {} = Nothing
-reverseStatement AddForeignKey { name } = Just DropConstraint { name }
+reverseStatement AddForeignKey { sourceTable, name } = Just DropConstraint { table = sourceTable, name }
 reverseStatement ValidateForeignKey {} = Nothing
 reverseStatement DropConstraint {} = Nothing
