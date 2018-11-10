@@ -3,24 +3,24 @@
   column: app_id
   type: text
 - tag: create_table
-  name: apps
+  table: apps
   prefix: AP
   definition:
-  - name: name
+  - column: name
     type: text
     null: false
-  - name: description
+  - column: description
     type: text
     null: false
-  - name: website_url
+  - column: website_url
     type: text
     null: true
-  - name: client_id
+  - column: client_id
     type: text
     null: false
-  - name: client_secret
+  - column: client_secret
     type: text
     null: false
-  - name: organisation_id
+  - column: organisation_id
     type: text
     null: false
